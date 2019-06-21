@@ -66,23 +66,6 @@ echo
 
 ifconfig | sed -e "s/\([0-9a-fA-F]\{1,4\}:\)\{7,7\}[0-9a-fA-F]\{1,4\}/y.y.y.y.y.y.y.y/g" | sed -e "s/[0-9a-fA-F]\{1,4\}:\(:[0-9a-fA-F]\{1,4\}\)\{1,4\}/y::y.y.y.y/g" | sed -e "s/\([0-9]\{1,3\}\.\)\{3,3\}[0-9]\{1,3\}/x.x.x.x/g" | sed -e "s/\([0-9a-fA-F]\{2,2\}\:\)\{5,5\}[0-9a-fA-F]\{2,2\}/m.m.m.m/g"
 
-echo
-echo "USB Information"
-echo "---------------"
-echo
-
-lsusb -t
-
-echo
-echo "config.txt"
-echo "----------"
-echo
-
-#cat /boot/config.txt | egrep -v "^\s*(#|^$)"
-vcgencmd get_config int
-vcgencmd get_config str
-
-
 #echo
 #echo "cmdline.txt"
 #echo "-----------"

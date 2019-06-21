@@ -18,6 +18,7 @@ our @EXPORT_OK = qw(
     mem_percent
     gpio_info
     raspi_config
+    network_info
 );
 
 our %EXPORT_TAGS;
@@ -71,6 +72,9 @@ sub gpio_info {
 sub mem_percent {
     return _format(memPercent());
 }
+sub network_info {
+    return `ifconfig`;
+}
 sub raspi_config {
     my $config = `vcgencmd get_config int`;
     $config .= `vcgencmd get_config str`;
@@ -123,6 +127,7 @@ Functions are not exported by default. You can load them each by name:
     core_temp
     gpio_info
     raspi_config
+    network_info
 
 ...or use the C<:all> tag to bring them all in at once.
 
