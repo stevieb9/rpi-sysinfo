@@ -16,6 +16,7 @@ our @EXPORT_OK = qw(
     core_temp
     cpu_percent
     mem_percent
+    gpio_info
 );
 
 our %EXPORT_TAGS;
@@ -25,6 +26,7 @@ sub new {
     return bless {}, shift;
 }
 sub core_temp {
+    shift if ref $_[0] eq 'RPi::SysInfo';
     my ($degree) = @_;
 
     $degree //= 'c';
@@ -53,6 +55,17 @@ sub core_temp {
 }
 sub cpu_percent {
     return _format(cpuPercent());
+}
+sub gpio_info {
+    shift if ref $_[0] eq 'RPi::SysInfo';
+
+    my ($pins) = @_;
+
+    $pins = ! defined $pins
+        ? ''
+        : join ",", @$pins;
+
+    return `raspi-gpio get $pins`;
 }
 sub mem_percent {
     return _format(memPercent());
@@ -100,6 +113,7 @@ Functions are not exported by default. You can load them each by name:
     cpu_percent
     mem_percent
     core_temp
+    gpio_info
 
 ...or use the C<:all> tag to bring them all in at once.
 
@@ -139,6 +153,20 @@ Optional, String: By default we return the temperature in Celcius. Simply send
 in the letter C<f> to get the result returned in Fahrenheit.
 
 Return: Two decimal place floating point number.
+
+=head2 gpio_info([$pins])
+
+Fetches the current configuration and status of one or many GPIO pins.
+
+Parameters:
+
+    $pins
+
+Optional, Aref of Integers: By default, we'll return the information for all
+GPIO pins on the system. Send in an aref of pin numbers and well fetch the data
+for only those pins (eg: C<gpio_info[1]> or C<gpio_info([2, 4, 6, 8])>).
+
+Return: Single string containing all of the data requested.
 
 =head1 PRIVATE FUNCTIONS/METHODS
 

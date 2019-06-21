@@ -96,17 +96,17 @@ echo
 
 raspi-gpio get
 
-echo
-echo "vcdbg log messages"
-echo "------------------"
-echo
+#echo
+#echo "vcdbg log messages"
+#echo "------------------"
+#echo
+#
+#sudo vcdbg log msg 2>&1
 
-sudo vcdbg log msg 2>&1
-
-echo
-echo "dmesg log"
-echo "---------"
-echo
-
-dmesg | sed -e "s/\([0-9a-fA-F]\{1,4\}:\)\{7,7\}[0-9a-fA-F]\{1,4\}/y.y.y.y.y.y.y.y/g" | sed -e "s/[0-9a-fA-F]\{1,4\}:\(:[0-9a-fA-F]\{1,4\}\)\{1,4\}/y::y.y.y.y/g" | sed -e "s/\([0-9a-fA-F]\{2,2\}\:\)\{5,5\}[0-9a-fA-F]\{2,2\}/m.m.m.m/g"
-
+#echo
+#echo "dmesg log"
+#echo "---------"
+#echo
+#
+#dmesg | sed -e "s/\([0-9a-fA-F]\{1,4\}:\)\{7,7\}[0-9a-fA-F]\{1,4\}/y.y.y.y.y.y.y.y/g" | sed -e "s/[0-9a-fA-F]\{1,4\}:\(:[0-9a-fA-F]\{1,4\}\)\{1,4\}/y::y.y.y.y/g" | sed -e "s/\([0-9a-fA-F]\{2,2\}\:\)\{5,5\}[0-9a-fA-F]\{2,2\}/m.m.m.m/g"
+#
