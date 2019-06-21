@@ -30,7 +30,8 @@ sub new {
     return bless {}, shift;
 }
 sub core_temp {
-    shift if ref $_[0] eq 'RPi::SysInfo';
+    shift if $_[0] && $_[0] =~ /RPi::/;
+
     my ($degree) = @_;
 
     $degree //= 'c';
@@ -61,8 +62,8 @@ sub cpu_percent {
     return _format(cpuPercent());
 }
 sub gpio_info {
-    shift if ref $_[0] eq 'RPi::SysInfo';
-
+    shift if $_[0] && $_[0] =~ /RPi::/;
+    
     my ($pins) = @_;
 
     $pins = ! defined $pins
