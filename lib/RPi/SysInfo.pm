@@ -25,6 +25,9 @@ sub new {
     return bless {}, shift;
 }
 sub core_temp {
+    my ($degree) = @_;
+
+    $degree //= 'c';
 
     local $SIG{__WARN__} = sub {
         my $warning = shift;
@@ -39,7 +42,12 @@ sub core_temp {
         croak "issue executing the core temp command, can't continue...\n";
     }
 
-    print "$temp\n";
+    $temp =~ s/(temp=)//;
+    $temp =~ s/'.*//;
+
+    if ($degree eq 'f' || $degree eq 'F'){
+        $temp = ($temp * 1.8) + 32;
+    }
 
     return $temp;
 }
@@ -68,9 +76,81 @@ Most functions will work equally as well on most Unix/Linux systems.
 
 =head1 SYNOPSIS
 
+    # Object Oriented
+
+    use RPi::SysInfo;
+
+    my $sys = RPi::SysInfo->new;
+    say $sys->cpu_percent;
+    say $sys->mem_percent;
+    say $sys->core_temp;
+
+    # Functional
+
+    use RPi::SysInfo qw(:all);
+
+    say cpu_percent();
+    say mem_percent();
+    say core_temp();
+
 =head1 EXPORT_OK
 
+Functions are not exported by default. You can load them each by name:
+
+    cpu_percent
+    mem_percent
+    core_temp
+
+...or use the C<:all> tag to bring them all in at once.
+
 =head1 FUNCTIONS/METHODS
+
+=head2 new
+
+Instantiates and returns a new L<RPi::SysInfo> object.
+
+Takes no parameters.
+
+=head2 cpu_percent
+
+Returns the percentage of current CPU usage.
+
+Takes no parameters.
+
+Return: Two decimal floating point number.
+
+=head2 mem_percent
+
+Returns the percentage of physical RAM currently in use.
+
+Takes no parameters.
+
+Return: Two decimal floating point number.
+
+=head2 core_temp($scale)
+
+Returns the core CPU temperature of the system.
+
+Parameters:
+
+    $scale
+
+Optional, String: By default we return the temperature in Celcius. Simply send
+in the letter C<f> to get the result returned in Fahrenheit.
+
+Return: Two decimal place floating point number.
+
+=head1 PRIVATE FUNCTIONS/METHODS
+
+=head2 _format($float)
+
+Formats a float/double value to two decimal places.
+
+Parameters:
+
+    $float
+
+Mandatory, Float/Double: The number to format.
 
 =head1 AUTHOR
 

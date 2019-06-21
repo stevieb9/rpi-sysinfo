@@ -13,6 +13,9 @@ my $sys = RPi::SysInfo->new;
 is ref $sys, 'RPi::SysInfo', "object is of proper class";
 
 like $sys->mem_percent, qr/^\d+\.\d+$/, "mem_percent() method return ok";
+
+sleep 1;
+
 like mem_percent, qr/^\d+\.\d+$/, "mem_percent() function return ok";
 
 done_testing();

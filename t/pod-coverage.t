@@ -1,5 +1,3 @@
-#!perl -T
-use 5.006;
 use strict;
 use warnings;
 use Test::More;
@@ -21,4 +19,16 @@ eval "use Pod::Coverage $min_pc";
 plan skip_all => "Pod::Coverage $min_pc required for testing POD coverage"
     if $@;
 
-all_pod_coverage_ok();
+my $pc = Pod::Coverage->new(
+    package => 'RPi::SysInfo',
+    pod_from => 'lib/RPi/SysInfo.pm',
+    private => [qr/[A-Z]/, qr/^bootstrap$/],
+);
+
+is $pc->coverage, 1, "pod coverage ok";
+
+if ($pc->uncovered){
+    print "Uncovered:\n\t", join( ", ", $pc->uncovered ), "\n";
+}
+
+done_testing();
