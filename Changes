@@ -1,5 +1,8 @@
 Revision history for RPi-SysInfo
 
+1.00 UNREL
+        -
+
 0.02    2019-06-21
         - added gpio_info()
         - added raspi_config()
