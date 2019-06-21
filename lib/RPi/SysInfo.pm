@@ -17,6 +17,7 @@ our @EXPORT_OK = qw(
     cpu_percent
     mem_percent
     gpio_info
+    raspi_config
 );
 
 our %EXPORT_TAGS;
@@ -70,6 +71,13 @@ sub gpio_info {
 sub mem_percent {
     return _format(memPercent());
 }
+sub raspi_config {
+    my $config = `vcgencmd get_config int`;
+    $config .= `vcgencmd get_config str`;
+    my $cmd = 'cat /boot/config.txt | egrep -v "^\s*(#|^$)"';
+    $config .= `$cmd`;
+    return $config;
+}
 sub _format {
     croak "_format() requires a float/double sent in\n" if ! defined $_[0];
     return sprintf("%.2f", $_[0]);
@@ -114,6 +122,7 @@ Functions are not exported by default. You can load them each by name:
     mem_percent
     core_temp
     gpio_info
+    raspi_config
 
 ...or use the C<:all> tag to bring them all in at once.
 
@@ -168,6 +177,14 @@ for only those pins (eg: C<gpio_info[1]> or C<gpio_info([2, 4, 6, 8])>).
 
 Return: Single string containing all of the data requested.
 
+=head2 raspi_config
+
+Feteches the directive names and values the Pi is configured with.
+
+Takes no parameters.
+
+Return: String, the contents of the current configuration.
+
 =head1 PRIVATE FUNCTIONS/METHODS
 
 =head2 _format($float)
@@ -193,8 +210,3 @@ under the terms of either: the GNU General Public License as published
 by the Free Software Foundation; or the Artistic License.
 
 See L<http://dev.perl.org/licenses/> for more information.
-
-
-=cut
-
-1; # End of RPi::SysInfo

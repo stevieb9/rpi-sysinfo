@@ -83,18 +83,11 @@ vcgencmd get_config int
 vcgencmd get_config str
 
 
-echo
-echo "cmdline.txt"
-echo "-----------"
-
-cat /proc/cmdline
-
-echo
-echo "raspi-gpio settings"
-echo "-------------------"
-echo
-
-raspi-gpio get
+#echo
+#echo "cmdline.txt"
+#echo "-----------"
+#
+#cat /proc/cmdline
 
 #echo
 #echo "vcdbg log messages"
