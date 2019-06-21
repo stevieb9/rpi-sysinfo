@@ -216,6 +216,19 @@ Takes no parameters.
 
 Return: String, the contents of the current configuration.
 
+=head2 file_system
+
+Fetches and returns various file system information as a string.
+
+=head2 network_info
+
+Fetches and returns the Pi's network configuration details as a string.
+
+=head2 pi_details
+
+Fetches and returns various information about the Pi, including the OS info,
+along with several hardware platform details as a string.
+
 =head1 PRIVATE FUNCTIONS/METHODS
 
 =head2 _format($float)

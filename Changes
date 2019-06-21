@@ -1,7 +1,12 @@
 Revision history for RPi-SysInfo
 
-0.02 UNREL
-        -
+0.02    2019-06-21
+        - added gpio_info()
+        - added raspi_config()
+        - added network_info()
+        - added file_system()
+        - added pi_details()
+        - added Github info to Makefile.PL
 
 0.01    Date/time
         First version, released on an unsuspecting world.
