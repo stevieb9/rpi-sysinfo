@@ -5,7 +5,7 @@ use RPi::SysInfo qw(:all);
 use Test::More;
 
 if (! $ENV{PI_BOARD}){
-    skip_all => "Not on a Pi board";
+    plan skip_all => "Not on a Pi board";
 }
 
 my $sys = RPi::SysInfo->new;
