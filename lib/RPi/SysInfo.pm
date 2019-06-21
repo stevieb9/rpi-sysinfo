@@ -56,6 +56,7 @@ sub core_temp {
         $temp = ($temp * 1.8) + 32;
     }
 
+    chomp $temp;
     return $temp;
 }
 sub cpu_percent {
@@ -70,19 +71,25 @@ sub gpio_info {
         ? ''
         : join ",", @$pins;
 
-    return `raspi-gpio get $pins`;
+    my $info = `raspi-gpio get $pins`;
+    chomp $info;
+    return $info;
 }
 sub mem_percent {
     return _format(memPercent());
 }
 sub network_info {
-    return `ifconfig`;
+    my $netinfo = `ifconfig`;
+    chomp $netinfo;
+    return $netinfo;
 }
 sub raspi_config {
     my $config = `vcgencmd get_config int`;
     $config .= `vcgencmd get_config str`;
     my $cmd = 'cat /boot/config.txt | egrep -v "^\s*(#|^$)"';
     $config .= `$cmd`;
+
+    chomp $config;
     return $config;
 }
 sub file_system {
