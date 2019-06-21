@@ -21,4 +21,4 @@ pm_to_blib
 .idea/
 *.debug
 *.iml
-inline/_Inline/
+inline/_Inline
