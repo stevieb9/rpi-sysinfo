@@ -20,6 +20,7 @@ our @EXPORT_OK = qw(
     raspi_config
     network_info
     file_system
+    pi_details
 );
 
 our %EXPORT_TAGS;
@@ -88,6 +89,23 @@ sub file_system {
     $fs_info .= `cat /proc/swaps`;
     return $fs_info;
 }
+sub pi_details {
+
+    my $details;
+
+    $details = "\n"
+             . `cat /sys/firmware/devicetree/base/model`
+             . "\n\n"
+             . `cat /etc/os-release | head -4`
+             . "\n"
+             . `uname -a`
+             . "\n"
+             . `cat /proc/cpuinfo | tail -3`
+             . "Throttled flag  : " . `vcgencmd get_throttled`
+             . "Camera          : " . `vcgencmd get_camera`;
+
+    return $details;
+}
 sub _format {
     croak "_format() requires a float/double sent in\n" if ! defined $_[0];
     return sprintf("%.2f", $_[0]);
@@ -135,6 +153,7 @@ Functions are not exported by default. You can load them each by name:
     raspi_config
     network_info
     file_system
+    pi_details
 
 ...or use the C<:all> tag to bring them all in at once.
 

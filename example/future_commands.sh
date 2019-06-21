@@ -40,13 +40,13 @@ vcgencmd version
 echo
 vcgencmd mem_reloc_stats
 
-echo
-echo "Filesystem information"
-echo "----------------------"
-
-df
-echo
-cat /proc/swaps
+#echo
+#echo "Filesystem information"
+#echo "----------------------"
+#
+#df
+#echo
+#cat /proc/swaps
 
 #echo
 #echo "Package version information"
