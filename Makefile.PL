@@ -10,7 +10,21 @@ WriteMakefile(
     ABSTRACT_FROM    => 'lib/RPi/SysInfo.pm',
     LICENSE          => 'perl_5',
     PL_FILES         => {},
-    MIN_PERL_VERSION => '5.006',
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+        resources   => {
+            bugtracker => {
+                web => 'https://github.com/stevieb9/rpi-sysinfo/issues',
+            },
+            repository => {
+                type => 'git',
+                url => 'https://github.com/stevieb9/rpi-sysinfo.git',
+                web => 'https://github.com/stevieb9/rpi-sysinfo',
+            },
+        },
+    },
+    MIN_PERL_VERSION   => 5.010,
+    LICENSE => 'perl_5',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => '0',
     },
