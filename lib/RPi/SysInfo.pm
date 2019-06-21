@@ -66,13 +66,13 @@ __END__
 
 =head1 NAME
 
-RPi::SysInfo - Retrieve system information from a Raspberry Pi
+RPi::SysInfo - Retrieve hardware system information from a Raspberry Pi
 
 =head1 DESCRIPTION
 
 Fetch live-time and other system information from a Raspberry Pi.
 
-Most functions will work equally as well on most Unix/Linux systems.
+Most functions will work equally as well on Unix/Linux systems.
 
 =head1 SYNOPSIS
 
