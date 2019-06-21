@@ -19,6 +19,7 @@ our @EXPORT_OK = qw(
     gpio_info
     raspi_config
     network_info
+    file_system
 );
 
 our %EXPORT_TAGS;
@@ -82,6 +83,11 @@ sub raspi_config {
     $config .= `$cmd`;
     return $config;
 }
+sub file_system {
+    my $fs_info = `df` . "\n";
+    $fs_info .= `cat /proc/swaps`;
+    return $fs_info;
+}
 sub _format {
     croak "_format() requires a float/double sent in\n" if ! defined $_[0];
     return sprintf("%.2f", $_[0]);
@@ -128,6 +134,7 @@ Functions are not exported by default. You can load them each by name:
     gpio_info
     raspi_config
     network_info
+    file_system
 
 ...or use the C<:all> tag to bring them all in at once.
 
