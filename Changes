@@ -13,6 +13,9 @@ Revision history for RPi-SysInfo
         - Rewrote t/20-gpio_info.t for the pinctrl output, and made
           t/25-raspi_config.t, t/35-file_system.t and t/40-pi_details.t
           board/OS-agnostic (root device, swap, SoC name) with expanded coverage
+        - Check fopen()/fscanf() return values in the cpuPercent() XS, silencing
+          a -Wunused-result build warning and guarding against an unreadable
+          /proc/stat
 
 1.00    2019-06-21
         - modify object shifting to include all RPi modules
