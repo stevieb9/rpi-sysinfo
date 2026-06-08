@@ -1,6 +1,18 @@
 Revision history for RPi-SysInfo
 
 1.01
+        - gpio_info() now collects data with pinctrl, falling back to the legacy
+          raspi-gpio. Fixes the method on current Raspberry Pi OS (raspi-gpio was
+          removed) and on the Pi 5/RP1 (where raspi-gpio never existed), both of
+          which previously returned an empty string
+        - raspi_config() now reads the active config.txt from
+          /boot/firmware/config.txt (Bookworm and later), falling back to
+          /boot/config.txt; previously it read only the old path, which is now a
+          "moved" stub, so user directives were missing from the output
+        - Added private helpers _gpio_tool() and _config_file()
+        - Rewrote t/20-gpio_info.t for the pinctrl output, and made
+          t/25-raspi_config.t, t/35-file_system.t and t/40-pi_details.t
+          board/OS-agnostic (root device, swap, SoC name) with expanded coverage
 
 1.00    2019-06-21
         - modify object shifting to include all RPi modules

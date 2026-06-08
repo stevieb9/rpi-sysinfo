@@ -64,14 +64,25 @@ sub cpu_percent {
 }
 sub gpio_info {
     shift if $_[0] && $_[0] =~ /RPi::/;
-    
+
     my ($pins) = @_;
 
     $pins = ! defined $pins
         ? ''
         : join ",", @$pins;
 
-    my $info = `raspi-gpio get $pins`;
+    # raspi-gpio was removed from current Raspberry Pi OS in favour of pinctrl,
+    # and never existed for the Pi 5 / RP1. Prefer pinctrl, falling back to
+    # raspi-gpio on older systems that still ship it. Both accept the same
+    # "get [pin[,pin...]]" invocation.
+
+    my $tool = _gpio_tool();
+
+    return '' if ! defined $tool;
+
+    my $info = `$tool get $pins`;
+    $info = '' if ! defined $info;
+
     chomp $info;
     return $info;
 }
@@ -86,8 +97,16 @@ sub network_info {
 sub raspi_config {
     my $config = `vcgencmd get_config int`;
     $config .= `vcgencmd get_config str`;
-    my $cmd = 'cat /boot/config.txt | egrep -v "^\s*(#|^$)"';
-    $config .= `$cmd`;
+
+    # config.txt moved from /boot to /boot/firmware on Bookworm and later (the
+    # old path now holds only a "this file has moved" stub), so resolve the
+    # real location before appending the user's non-comment directives.
+
+    my $config_file = _config_file();
+
+    if (defined $config_file){
+        $config .= `grep -E -v '^\\s*(#|^\$)' $config_file`;
+    }
 
     chomp $config;
     return $config;
@@ -114,9 +133,31 @@ sub pi_details {
 
     return $details;
 }
+sub _config_file {
+    # Locate the active config.txt. Bookworm and later moved it to
+    # /boot/firmware/config.txt; older systems keep it at /boot/config.txt.
+
+    for my $file ('/boot/firmware/config.txt', '/boot/config.txt'){
+        return $file if -f $file;
+    }
+
+    return undef;
+}
 sub _format {
     croak "_format() requires a float/double sent in\n" if ! defined $_[0];
     return sprintf("%.2f", $_[0]);
+}
+sub _gpio_tool {
+    # Locate a GPIO query tool on PATH. pinctrl is the current Raspberry Pi OS
+    # utility; raspi-gpio is the legacy one kept here as a fallback.
+
+    for my $tool (qw(pinctrl raspi-gpio)){
+        for my $dir (split /:/, $ENV{PATH} // ''){
+            return $tool if -x "$dir/$tool";
+        }
+    }
+
+    return undef;
 }
 1;
 __END__
@@ -214,11 +255,19 @@ Optional, Aref of Integers: By default, we'll return the information for all
 GPIO pins on the system. Send in an aref of pin numbers and well fetch the data
 for only those pins (eg: C<gpio_info[1]> or C<gpio_info([2, 4, 6, 8])>).
 
+The data is collected with C<pinctrl> (the current Raspberry Pi OS GPIO tool,
+and the only one available on the Pi 5 / RP1), falling back to the legacy
+C<raspi-gpio> on older systems that still ship it. If neither tool is present,
+an empty string is returned.
+
 Return: Single string containing all of the data requested.
 
 =head2 raspi_config
 
-Feteches the directive names and values the Pi is configured with.
+Feteches the directive names and values the Pi is configured with. This includes
+the live C<vcgencmd get_config> values plus the non-comment directives from the
+active C<config.txt> (C</boot/firmware/config.txt> on Bookworm and later,
+falling back to C</boot/config.txt>).
 
 Takes no parameters.
 
@@ -239,6 +288,12 @@ along with several hardware platform details as a string.
 
 =head1 PRIVATE FUNCTIONS/METHODS
 
+=head2 _config_file
+
+Returns the path to the active C<config.txt>, preferring the Bookworm-and-later
+C</boot/firmware/config.txt> and falling back to the legacy C</boot/config.txt>.
+Returns C<undef> if neither exists.
+
 =head2 _format($float)
 
 Formats a float/double value to two decimal places.
@@ -248,6 +303,12 @@ Parameters:
     $float
 
 Mandatory, Float/Double: The number to format.
+
+=head2 _gpio_tool
+
+Returns the name of the GPIO query tool found on C<PATH>: C<pinctrl> by
+preference, else the legacy C<raspi-gpio>. Returns C<undef> if neither is
+installed.
 
 =head1 AUTHOR
 
