@@ -1,6 +1,6 @@
 Revision history for RPi-SysInfo
 
-1.02 UNREL
+1.02    2026-06-12
         - Added pi_model(), returning the normalized board name from the
           devicetree model, with a /proc/cpuinfo Revision-code decode fallback
           (handles both old-style and new-style revision codes, Pi 1 through 5)
