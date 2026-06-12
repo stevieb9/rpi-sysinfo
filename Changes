@@ -21,6 +21,8 @@ Revision history for RPi-SysInfo
         - Added t/50-helpers.t (exhaustive helper/edge-case coverage) and
           t/55-board-fixtures.t (Pi 3/4/5 fixture replay), with t/data fixtures
           and t/capture-fixtures.sh to capture ground truth from real boards
+        - The test suite board gate is now RPI_BOARD (ecosystem-wide rename
+          from PI_BOARD); the old name is no longer honored
 
 1.01
         - gpio_info() now collects data with pinctrl, falling back to the legacy

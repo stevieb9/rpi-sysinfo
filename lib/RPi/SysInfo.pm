@@ -74,6 +74,11 @@ sub gpio_info {
     chomp $info;
     return $info;
 }
+sub file_system {
+    my $fs_info = _run('df') . "\n";
+    $fs_info .= _slurp('/proc/swaps') // '';
+    return $fs_info;
+}
 sub mem_percent {
     return _format(memPercent());
 }
@@ -149,11 +154,7 @@ sub raspi_config {
     chomp $config;
     return $config;
 }
-sub file_system {
-    my $fs_info = _run('df') . "\n";
-    $fs_info .= _slurp('/proc/swaps') // '';
-    return $fs_info;
-}
+
 sub _board_summary {
     # Human-readable decode of the SoC, RAM and RP1 presence pulled from the
     # /proc/cpuinfo Revision code. Used to enrich pi_details(). Returns
@@ -393,6 +394,7 @@ sub _slurp {
 
     return $data;
 }
+
 1;
 __END__
 
