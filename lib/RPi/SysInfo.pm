@@ -150,7 +150,7 @@ sub raspi_config {
     my $config_file = _config_file();
 
     if (defined $config_file){
-        $config .= _run("grep -E -v '^\\s*(#|^\$)' $config_file");
+        $config .= _run("grep -E -v '^\\s*(#|\$)' $config_file");
     }
 
     chomp $config;
@@ -358,6 +358,11 @@ sub _first_tool {
 }
 sub _format {
     croak "_format() requires a float/double sent in\n" if ! defined $_[0];
+
+    # cpuPercent()/memPercent() return -1.0 on failure; surface that as an empty
+    # string rather than formatting a nonsensical negative "-1.00" percentage.
+    return '' if $_[0] < 0;
+
     return sprintf("%.2f", $_[0]);
 }
 sub _gpio_tool {

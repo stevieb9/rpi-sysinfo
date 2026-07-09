@@ -4,8 +4,10 @@ use strict;
 use RPi::SysInfo qw(:all);
 use Test::More;
 
-if (! $ENV{RPI_BOARD}){
-    plan skip_all => "Not on a Pi board";
+# memPercent() reads /proc/meminfo, which is Linux-wide, not Pi-specific, so
+# this runs on any Linux host (not just a Pi board).
+if ($^O ne 'linux'){
+    plan skip_all => "memPercent() reads /proc/meminfo (Linux only)";
 }
 
 my $sys = RPi::SysInfo->new;

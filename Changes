@@ -9,6 +9,16 @@ Revision history for RPi-SysInfo
     - pi_details() now includes a "wiringPi" line with that version
     - Added HW-free coverage of the gpio-fallback and not-found paths to
       t/50-helpers.t, and a wiringPi-line assertion to t/40-pi_details.t
+    - cpu_percent()/mem_percent() now return '' when the XS layer reports its
+      -1.0 failure sentinel, instead of formatting a nonsensical "-1.00"
+      percentage (_format() now treats any negative value as an error)
+    - Fixed the raspi_config() config.txt filter: the grep alternation
+      '(#|^$)' had an unreachable blank-line branch (stray '^'); blank and
+      whitespace-only lines are now correctly skipped along with comments
+    - Ungated t/05-cpu_percent.t and t/10-mem_percent.t: cpuPercent()/
+      memPercent() read /proc, so they run on any Linux host, not just a Pi
+    - Extended t/50-helpers.t with the -1.0 sentinel handling, the raspi_config
+      grep-regex fix, and a 16GB Pi 5 revision decode
 
 1.02    2026-06-12
         - Added pi_model(), returning the normalized board name from the

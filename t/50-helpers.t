@@ -23,6 +23,10 @@ no warnings 'redefine';
             soc  => 'BCM2712', mem => '8GB', rp1 => 1, new_style => 1,
             manufacturer => 'Sony UK', revision => 1,
         },
+        e04170 => {                                 # Pi 5 16GB (mem field 6)
+            name => 'Raspberry Pi 5 Model B', type => '5 Model B',
+            soc  => 'BCM2712', mem => '16GB', rp1 => 1, new_style => 1,
+        },
         c03112 => {                                 # Pi 4 4GB
             name => 'Raspberry Pi 4 Model B', type => '4 Model B',
             soc  => 'BCM2711', mem => '4GB', rp1 => 0, new_style => 1,
@@ -126,7 +130,13 @@ no warnings 'redefine';
 is RPi::SysInfo::_format(12.345),  '12.35',  "_format rounds 12.345 -> 12.35";
 is RPi::SysInfo::_format(99.999),  '100.00', "_format rounds 99.999 -> 100.00";
 is RPi::SysInfo::_format(0),       '0.00',   "_format 0 -> 0.00";
-is RPi::SysInfo::_format(-1.5),    '-1.50',  "_format negative";
+
+# F15a: cpuPercent()/memPercent() hand back -1.0 on failure. A percentage can't
+# be negative, so _format surfaces the sentinel as '' rather than "-1.00".
+is RPi::SysInfo::_format(-1),      '', "_format returns '' on the -1.0 error sentinel (F15a)";
+is RPi::SysInfo::_format(-1.0),    '', "_format treats -1.0 as an error";
+is RPi::SysInfo::_format(-0.5),    '', "_format treats any negative as an error";
+
 eval { RPi::SysInfo::_format(undef) };
 like $@, qr/requires a float/, "_format(undef) croaks";
 
@@ -364,6 +374,85 @@ like $@, qr/requires a command/, "_run(undef) croaks";
     local *RPi::SysInfo::_first_tool = sub { undef };
     is wiringpi_version(), '',
         "wiringpi_version returns '' when wiringPi can't be found";
+}
+
+# ---------------------------------------------------------------------------
+# cpu_percent() / mem_percent(): XS value formatting + F15a error sentinel, in
+# both functional and OO form. cpuPercent()/memPercent() are stubbed, so no
+# real /proc sampling is needed and the result is deterministic.
+# ---------------------------------------------------------------------------
+
+{
+    local *RPi::SysInfo::cpuPercent = sub { 42.5 };
+    local *RPi::SysInfo::memPercent = sub { 73.219 };
+
+    is cpu_percent(), '42.50', "cpu_percent formats the XS sample to 2 dp";
+    is mem_percent(), '73.22', "mem_percent formats the XS sample to 2 dp";
+
+    my $sys = RPi::SysInfo->new;
+    is $sys->cpu_percent, '42.50', "OO cpu_percent formats via the same path";
+    is $sys->mem_percent, '73.22', "OO mem_percent formats via the same path";
+}
+{
+    # F15a: the -1.0 failure sentinel becomes '' rather than "-1.00".
+    local *RPi::SysInfo::cpuPercent = sub { -1.0 };
+    local *RPi::SysInfo::memPercent = sub { -1.0 };
+
+    is cpu_percent(), '', "cpu_percent returns '' on the XS -1.0 sentinel (F15a)";
+    is mem_percent(), '', "mem_percent returns '' on the XS -1.0 sentinel (F15a)";
+
+    my $sys = RPi::SysInfo->new;
+    is $sys->cpu_percent, '', "OO cpu_percent returns '' on the sentinel too";
+    is $sys->mem_percent, '', "OO mem_percent returns '' on the sentinel too";
+}
+
+# ---------------------------------------------------------------------------
+# raspi_config(): the config.txt filter must drop comments AND blank lines.
+# F15b was a stray '^' inside the alternation ('(#|^$)') that made the
+# blank-line branch unreachable; the fixed form is '(#|$)'.
+# ---------------------------------------------------------------------------
+
+{
+    # Command construction: lock the corrected grep regex in place.
+    my @cmds;
+    local *RPi::SysInfo::_run         = sub { push @cmds, $_[0]; '' };
+    local *RPi::SysInfo::_config_file = sub { '/boot/firmware/config.txt' };
+
+    raspi_config();
+
+    my ($grep) = grep { /grep/ } @cmds;
+    like   $grep, qr/\Q(#|$)\E/,  "raspi_config grep skips comments and blanks (F15b)";
+    unlike $grep, qr/\Q(#|^$)\E/, "raspi_config grep has no malformed inner '^' (F15b)";
+}
+{
+    # Behavioural: run the real grep against a temp config.txt and confirm
+    # comments (indented included) and blank lines drop while directives survive.
+    # Only the grep runs for real; the vcgencmd calls are stubbed to ''.
+    my $dir = tempdir(CLEANUP => 1);
+    my $cfg = "$dir/config.txt";
+    open my $fh, '>', $cfg or die $!;
+    print $fh "# a comment\n";
+    print $fh "   # indented comment\n";
+    print $fh "\n";
+    print $fh "   \n";
+    print $fh "dtparam=audio=on\n";
+    print $fh "dtoverlay=vc4-kms-v3d\n";
+    close $fh;
+
+    my $real_run = \&RPi::SysInfo::_run;
+    local *RPi::SysInfo::_config_file = sub { $cfg };
+    local *RPi::SysInfo::_run = sub {
+        my ($cmd) = @_;
+        return $real_run->($cmd) if $cmd =~ /grep/;
+        return '';
+    };
+
+    my $out = raspi_config();
+
+    like   $out, qr/dtparam=audio=on/,      "raspi_config keeps directive lines";
+    like   $out, qr/dtoverlay=vc4-kms-v3d/, "raspi_config keeps overlay lines";
+    unlike $out, qr/comment/,               "raspi_config strips comments (indented too)";
+    unlike $out, qr/^\s+$/m,                "raspi_config strips blank/whitespace-only lines";
 }
 
 done_testing();
