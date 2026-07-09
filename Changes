@@ -1,7 +1,14 @@
 Revision history for RPi-SysInfo
 
 1.03 UNREL
-    -
+    - Added wiringpi_version(): returns the installed wiringPi library version
+      ("MAJOR.MINOR") at runtime, read from the linked library via a
+      soft-loaded WiringPi::API (authoritative), falling back to parsing
+      'gpio -v', else ''. Answers "what wiringPi am I actually running",
+      complementing the build-time RPi::Const::WIRINGPI_MIN_VERSION minimum
+    - pi_details() now includes a "wiringPi" line with that version
+    - Added HW-free coverage of the gpio-fallback and not-found paths to
+      t/50-helpers.t, and a wiringPi-line assertion to t/40-pi_details.t
 
 1.02    2026-06-12
         - Added pi_model(), returning the normalized board name from the

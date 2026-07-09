@@ -25,6 +25,7 @@ for my $case (['method', $sys->pi_details], ['function', pi_details()]){
     like $d, qr/Serial\s*:/,     "pi_details() $form includes the cpuinfo Serial";
     like $d, qr/Model\s*:/,      "pi_details() $form includes the cpuinfo Model";
     like $d, qr/Throttled flag/, "pi_details() $form includes the throttled flag";
+    like $d, qr/wiringPi\s*:/,   "pi_details() $form includes the wiringPi version line";
 }
 
 done_testing();

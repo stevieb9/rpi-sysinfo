@@ -22,6 +22,7 @@ our @EXPORT_OK = qw(
     file_system
     pi_details
     pi_model
+    wiringpi_version
 );
 
 our %EXPORT_TAGS;
@@ -112,7 +113,8 @@ sub pi_details {
              . "Board           : " . pi_model() . "\n"
              . "SoC / RAM       : " . _board_summary() . "\n"
              . "Throttled flag  : " . _run('vcgencmd get_throttled')
-             . "Camera          : " . _camera_info() . "\n";
+             . "Camera          : " . _camera_info() . "\n"
+             . "wiringPi        : " . (_wiringpi_version() || 'not found') . "\n";
 
     return $details;
 }
@@ -153,6 +155,15 @@ sub raspi_config {
 
     chomp $config;
     return $config;
+}
+sub wiringpi_version {
+    shift if $_[0] && $_[0] =~ /RPi::/;
+
+    # The installed wiringPi library version ("MAJOR.MINOR", eg. "3.18"), or ''
+    # if wiringPi can't be found. This answers "what wiringPi am I actually
+    # running" at runtime, complementing the build-time minimum enforced by
+    # RPi::Const::BuildCheck.
+    return _wiringpi_version();
 }
 
 sub _board_summary {
@@ -394,6 +405,25 @@ sub _slurp {
 
     return $data;
 }
+sub _wiringpi_version {
+    # Prefer the value reported by the linked wiringPi library (authoritative -
+    # it is what the code will actually call), via WiringPi::API if installed.
+    # WiringPi::API is an optional runtime helper here, not a hard prereq, so it
+    # is soft-loaded. Fall back to parsing the `gpio` CLI, then to '' when
+    # wiringPi can't be found at all.
+    my $ver = eval {
+        require WiringPi::API;
+        scalar WiringPi::API::wiringpi_version();
+    };
+    return $ver if defined $ver && $ver =~ /^\d+\.\d+$/;
+
+    if (_first_tool('gpio')) {
+        my $out = _run('gpio -v');
+        return $1 if $out =~ /version:\s*(\d+\.\d+)/i;
+    }
+
+    return '';
+}
 
 1;
 __END__
@@ -448,6 +478,7 @@ Functions are not exported by default. You can load them each by name:
     file_system
     pi_details
     pi_model
+    wiringpi_version
 
 ...or use the C<:all> tag to bring them all in at once.
 
@@ -556,6 +587,22 @@ Takes no parameters.
 The name is read from the devicetree model (authoritative on the Pi 0-5),
 falling back to a decode of the C</proc/cpuinfo> C<Revision> code, and finally
 to C<Unknown> if the board can't be identified.
+
+Return: String.
+
+=head2 wiringpi_version
+
+Returns the installed wiringPi library version as a C<MAJOR.MINOR> string (eg.
+C<3.18>), or an empty string if wiringPi can't be found.
+
+Takes no parameters.
+
+The value is read from the linked wiringPi library via L<WiringPi::API> (the
+authoritative source - it is what the family's XS actually calls) when that
+module is installed; otherwise it falls back to parsing the C<gpio -v> CLI. This
+answers "what wiringPi am I actually running" at runtime, complementing the
+build-time minimum defined by L<RPi::Const/WIRINGPI_MIN_VERSION> and enforced by
+L<RPi::Const::BuildCheck>.
 
 Return: String.
 
@@ -674,6 +721,13 @@ Parameters:
     $file
 
 Mandatory, String: The path to read.
+
+=head2 _wiringpi_version
+
+Returns the installed wiringPi version (C<MAJOR.MINOR>), or an empty string.
+Prefers the linked-library value via a soft-loaded L<WiringPi::API>, falling
+back to a C<gpio -v> parse. The detection seam behind L</wiringpi_version> and
+the C<wiringPi> line in L</pi_details>.
 
 =head1 AUTHOR
 

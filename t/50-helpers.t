@@ -342,4 +342,28 @@ like $@, qr/requires a command/, "_run(undef) croaks";
     is pi_model(), 'Unknown', "pi_model returns Unknown when nothing identifies the board";
 }
 
+# ---------------------------------------------------------------------------
+# wiringpi_version(): gpio -v fallback + not-found. The linked-library branch
+# (WiringPi::API) is neutralised so the fallback logic itself is under test.
+# ---------------------------------------------------------------------------
+
+{
+    # Mark WiringPi::API "loaded" and stub its version sub to yield nothing, so
+    # _wiringpi_version's soft require() is a no-op (can't reinstate the real
+    # sub) and detection falls through to the gpio parse - deterministic
+    # whether or not WiringPi::API is actually installed.
+    local $INC{'WiringPi/API.pm'} = 'stubbed for test';
+    no warnings 'redefine';
+    local *WiringPi::API::wiringpi_version = sub { undef };
+
+    local *RPi::SysInfo::_first_tool = sub { 'gpio' };
+    local *RPi::SysInfo::_run        = sub { "gpio version: 3.18\n" };
+    is wiringpi_version(), '3.18',
+        'wiringpi_version parses `gpio -v` when the library value is unavailable';
+
+    local *RPi::SysInfo::_first_tool = sub { undef };
+    is wiringpi_version(), '',
+        "wiringpi_version returns '' when wiringPi can't be found";
+}
+
 done_testing();
